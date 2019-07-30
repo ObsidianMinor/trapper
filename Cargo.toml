@@ -1,7 +1,13 @@
 [package]
 name = "trapper"
-version = "0.1.0"
-authors = ["Sydney Acksman <obsidianminor@gmail.com>"]
+version = "1.0.0"
 edition = "2018"
+authors = ["Sydney Acksman <obsidianminor@gmail.com>"]
+description = "A library for creating newtypes that don't require ownership of their internal value"
+license = "MIT"
+repository = "https://github.com/ObsidianMinor/trapper"
+readme = "README.md"
+keywords = ["wrapper", "newtype"]
+categories = ["no-std"]
 
 [dependencies]
