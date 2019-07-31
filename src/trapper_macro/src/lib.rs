@@ -1,7 +1,7 @@
 extern crate proc_macro;
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{Token, Attribute, Visibility, Field, Ident, Generics, parse, parenthesized};
+use syn::{parenthesized, parse, Attribute, Field, Generics, Ident, Token, Visibility};
 
 struct ItemNewType {
     pub attrs: Vec<Attribute>,
@@ -10,7 +10,7 @@ struct ItemNewType {
     pub ident: Ident,
     pub generics: Generics,
     pub inner: Field,
-    pub semi: Option<Token![;]>
+    pub semi: Option<Token![;]>,
 }
 
 impl parse::Parse for ItemNewType {
@@ -35,21 +35,21 @@ impl parse::Parse for ItemNewType {
             ident,
             generics: Generics {
                 where_clause,
-                .. generics
+                ..generics
             },
             inner,
-            semi
+            semi,
         })
     }
 }
 
-/// Creates a new wrapper type. This type is transparent and implements [`Wrapper`](trait.Wrapper.html)
-/// 
+/// Creates a new wrapper type. This type is transparent and implements `trapper::Wrapper`
+///
 /// # Examples
-/// 
-/// ```ignore
+///
+/// ```
 /// use trapper::newtype;
-/// 
+///
 /// newtype!(type BasicNumber(i32));
 /// newtype!(pub type WithVisibility(i32));
 /// newtype!(pub type WithLifetimes<'a>(std::io::StderrLock<'a>));
@@ -64,7 +64,7 @@ impl parse::Parse for ItemNewType {
 /// ```
 #[proc_macro]
 pub fn newtype(item: TokenStream) -> TokenStream {
-    let ItemNewType { 
+    let ItemNewType {
         attrs: attributes,
         vis,
         ident: name,

@@ -1,8 +1,14 @@
 [package]
 name = "trapper_macro"
-version = "0.1.0"
-authors = ["Sydney Acksman <obsidianminor@gmail.com>"]
+version = "1.0.0"
 edition = "2018"
+authors = ["Sydney Acksman <obsidianminor@gmail.com>"]
+description = "A proc-macro crate for easily building wrapper types with trapper"
+license = "MIT"
+repository = "https://github.com/ObsidianMinor/trapper"
+readme = "README.md"
+keywords = ["wrapper", "newtype"]
+categories = ["no-std"]
 
 [lib]
 proc-macro = true
@@ -10,3 +16,6 @@ proc-macro = true
 [dependencies]
 syn = "0.15.*"
 quote = "0.6.*"
+
+[dev-dependencies]
+trapper = { path = "../trapper" }
