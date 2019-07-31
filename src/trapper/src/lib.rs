@@ -3,6 +3,7 @@
 //! Trapper (or transparent wrapper) allows for the creation of transparent type wrappers, 
 //! that is types which are transparent and can be wrapped and unwrapped for zero cost.
 
+extern crate self as trapper;
 
 /// A type wrapper. This trait provides methods for converting between a wrapper and its 
 /// inner type. It should only be implemented by types through the [`newtype`](macro.newtype.html) macro. If it must
@@ -19,9 +20,11 @@ pub unsafe trait Wrapper: Sized {
     /// use trapper::{Wrapper, newtype};
     /// newtype!(#[derive(PartialEq, Debug)] type NumberWrapper(i32));
     /// 
+    /// # fn main() {
     /// let wrapper = NumberWrapper::wrap(12);
     /// let other = NumberWrapper::wrap(12);
     /// assert_eq!(wrapper, other);
+    /// # }
     /// ```
     fn wrap(inner: Self::Inner) -> Self;
     /// Unwraps the wrapper, returning its inner value.
@@ -32,8 +35,10 @@ pub unsafe trait Wrapper: Sized {
     /// use trapper::{Wrapper, newtype};
     /// newtype!(type NumberWrapper(i32));
     /// 
+    /// # fn main() {
     /// let wrapper = NumberWrapper::wrap(12);
     /// assert_eq!(wrapper.unwrap(), 12);
+    /// # }
     /// ```
     fn unwrap(self) -> Self::Inner;
 
@@ -45,8 +50,10 @@ pub unsafe trait Wrapper: Sized {
     /// use trapper::{Wrapper, newtype};
     /// newtype!(type NumberWrapper(i32));
     /// 
+    /// # fn main() {
     /// let number = 12;
     /// let wrapper: &NumberWrapper = NumberWrapper::wrap_ref(&number);
+    /// # }
     /// ```
     fn wrap_ref(inner: &Self::Inner) -> &Self {
         unsafe { &*(inner as *const Self::Inner as *const Self) }
@@ -59,11 +66,13 @@ pub unsafe trait Wrapper: Sized {
     /// use trapper::{Wrapper, newtype};
     /// newtype!(type NumberWrapper(i32));
     /// 
+    /// # fn main() {
     /// let mut number = 12;
     /// let wrapper: &mut NumberWrapper = NumberWrapper::wrap_mut(&mut number);
     /// *wrapper = NumberWrapper::wrap(13);
     /// 
     /// assert_eq!(number, 13);
+    /// # }
     /// ```
     fn wrap_mut(inner: &mut Self::Inner) -> &mut Self {
         unsafe { &mut *(inner as *mut Self::Inner as *mut Self) }
@@ -77,9 +86,11 @@ pub unsafe trait Wrapper: Sized {
     /// use trapper::{Wrapper, newtype};
     /// newtype!(type NumberWrapper(i32));
     /// 
+    /// # fn main() {
     /// let wrapper = NumberWrapper::wrap(12);
     /// 
     /// assert_eq!(*wrapper.unwrap_ref(), 12);
+    /// # }
     /// ```
     fn unwrap_ref(&self) -> &Self::Inner {
         unsafe { &*(self as *const Self as *const Self::Inner) }
@@ -92,10 +103,12 @@ pub unsafe trait Wrapper: Sized {
     /// use trapper::{Wrapper, newtype};
     /// newtype!(#[derive(PartialEq, Debug)] type NumberWrapper(i32));
     /// 
+    /// # fn main() {
     /// let mut wrapper = NumberWrapper::wrap(12);
     /// *wrapper.unwrap_mut() = 13;
     /// 
     /// assert_eq!(wrapper, NumberWrapper::wrap(13));
+    /// # }
     /// ```
     fn unwrap_mut(&mut self) -> &mut Self::Inner {
         unsafe { &mut *(self as *mut Self as *mut Self::Inner) }
@@ -112,29 +125,33 @@ pub unsafe trait Wrapper: Sized {
 /// newtype!(type BasicNumber(i32));
 /// newtype!(pub type WithVisibility(i32));
 /// newtype!(pub type WithLifetimes<'a>(std::io::StderrLock<'a>));
+/// newtype!(pub type WithTypeParameters<T>(T));
+/// newtype!(pub type WithBoth<'a, T>(&'a T));
+/// newtype!(pub type WithClause<'a, T>(&'a T) where T: Default);
+/// newtype! {
+///     /// a summary
+///     pub type WithAttributes(i32);
+/// }
+/// 
+/// # fn main() { }
 /// ```
-#[macro_export]
-macro_rules! newtype { 
-    ($(#[$a:meta])* $visbility:vis type $name:ident$(<$($l:lifetime),+>)?($inner:ty)) => {
-        $(#[$a]
-        )*
-        #[repr(transparent)]
-        $visbility struct $name$(<$($l),+>)?($inner);
-        unsafe impl$(<$($l),+>)? $crate::Wrapper for $name$(<$($l),+>)? {
-            type Inner = $inner;
-
-            fn wrap(inner: Self::Inner) -> Self { Self(inner) }
-            fn unwrap(self) -> Self::Inner { self.0 }
-        }
-    };
-}
+pub use trapper_macro::newtype;
 
 #[cfg(test)]
 mod tests {
-    newtype!(#[allow(dead_code)] type InMod(i32));
+    use super::newtype;
 
-    #[test]
-    fn in_function() {
-        newtype!(#[allow(dead_code)] type InFunction(i32));
+    newtype!(#[allow(dead_code)] type InMod(i32));
+    newtype!(#[allow(dead_code)] type WithLifetimes<'a>(std::io::StderrLock<'a>));
+    newtype!(#[allow(dead_code)] type WithTypeParameters<T>(T));
+    newtype!(#[allow(dead_code)] type WithBoth<'a, T>(&'a T));
+    newtype!(#[allow(dead_code)] type WithClause<'a, T>(&'a T) where T: Default);
+    newtype! {
+        #[allow(dead_code)]
+        /// doc
+        type AttributesDocsLifetimesTypesClausesTrailingSemicolon<'a, 'b, 'c, T>(&'a &'b &'c T) where T: Default + Clone, 'a: 'b;
+    }
+    newtype! {
+        type NoWhereClause<'a: 'b, 'b, T = i32>(&'b &'a T);
     }
 }
